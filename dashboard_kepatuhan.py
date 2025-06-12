@@ -85,10 +85,10 @@ if uploaded_file:
 # Gunakan kolom standar
     df = df.rename(columns=column_mapping)
 
-    jenis_pajak = st.selectbox("Pilih Jenis Pajak", ["MAKAN MINUM", "HIBURAN"])
+    jenis_pajak = st.selectbox("Pilih Jenis Pajak", ["MAKAN MINUM", "JASA KESENIAN DAN HIBURAN"])
 
-    if jenis_pajak == "HIBURAN" and 'KATEGORI' not in df.columns:
-        st.error("Kolom 'KATEGORI' wajib untuk jenis pajak HIBURAN.")
+    if jenis_pajak == "JASA KESENIAN DAN HIBURAN" and 'KLASIFIKASI' not in df.columns:
+        st.error("Kolom 'KLASIFIKASI' wajib untuk jenis pajak HIBURAN.")
         st.stop()
 
     df['TMT'] = df['TMT'].apply(parse_tmt)
