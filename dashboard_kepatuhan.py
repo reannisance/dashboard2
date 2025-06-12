@@ -63,11 +63,27 @@ if uploaded_file:
     # Normalisasi kolom
     df.columns = [str(c).strip().upper() for c in df.columns]
 
-    required_columns = ['NAMA UNIT' or 'NM UNIT' or 'UPPPD' , 'STATUS', 'TMT']
-    for col in required_columns:
-        if col not in df.columns:
-            st.error(f"Kolom wajib '{col}' tidak ditemukan.")
+# Definisikan alias kolom
+    alias_columns = {
+        'UPPPD': ['UPPPD', 'NAMA UNIT', 'NM UNIT'],
+        'STATUS': ['STATUS'],
+        'TMT': ['TMT']
+}
+
+# Buat mapping nama kolom sebenarnya dari df
+    column_mapping = {}
+
+    for standar, aliases in alias_columns.items():
+        for alias in aliases:
+            if alias in df.columns:
+                column_mapping[standar] = alias
+                break
+        if standar not in column_mapping:
+            st.error(f"Kolom untuk '{standar}' tidak ditemukan. Cek apakah nama kolomnya sesuai.")
             st.stop()
+
+# Gunakan kolom standar
+    df = df.rename(columns=column_mapping)
 
     jenis_pajak = st.selectbox("Pilih Jenis Pajak", ["MAKAN MINUM", "HIBURAN"])
 
