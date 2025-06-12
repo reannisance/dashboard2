@@ -63,7 +63,7 @@ if uploaded_file:
     # Normalisasi kolom
     df.columns = [str(c).strip().upper() for c in df.columns]
 
-    required_columns = ['NAMA UNIT', 'STATUS', 'TMT']
+    required_columns = ['NAMA UNIT' or 'NM UNIT' or 'UPPPD' , 'STATUS', 'TMT']
     for col in required_columns:
         if col not in df.columns:
             st.error(f"Kolom wajib '{col}' tidak ditemukan.")
