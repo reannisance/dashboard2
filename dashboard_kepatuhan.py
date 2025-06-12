@@ -31,7 +31,7 @@ def calculate_kepatuhan(row, pembayaran_bulan):
     mulai = pd.Timestamp(bulan_tmt)
     akhir = pd.Timestamp(f"{tahun_pajak}-12-01")
     bulan_aktif = generate_month_range(mulai, akhir)
-    bayar = pembayaran_bulan.get(row['NAMA WP'], [])
+    bayar = pembayaran_bulan.get(row['NAMA OP'], [])
 
     if not bayar:
         return 0
@@ -67,8 +67,13 @@ if uploaded_file:
     alias_columns = {
         'UPPPD': ['UPPPD', 'NAMA UNIT', 'NM UNIT'],
         'STATUS': ['STATUS'],
-        'TMT': ['TMT']
+        'TMT': ['TMT'],
+        'NAMA OP' : ['NAMA OP', 'OP', 'OBJEK PAJAK', 'NAMA OBJEK'],
+        'KLASIFIKASI' : ['KATEGORI', 'KLASIFIKASI']
 }
+
+# Kolom wajib (harus ada)
+    required_fields = ['UPPPD', 'STATUS', 'TMT']
 
 # Buat mapping nama kolom sebenarnya dari df
     column_mapping = {}
@@ -100,7 +105,7 @@ if uploaded_file:
     # Simulasi histori pembayaran
     pembayaran_bulan = {}
     for _, row in df.iterrows():
-        nama = row['NAMA WP']
+        nama = row['NAMA OP']
         histori = []
         for col in pembayaran_cols:
             bulan = col.replace("PEMBAYARAN ", "")
@@ -121,14 +126,14 @@ if uploaded_file:
     with st.expander("Filter"):
         selected_upppd = st.multiselect("Filter UPPPD", options=df['UPPPD'].unique(), default=df['UPPPD'].unique())
         selected_status = st.multiselect("Filter STATUS", options=df['STATUS'].unique(), default=df['STATUS'].unique())
-        if jenis_pajak == "HIBURAN":
-            selected_kategori = st.multiselect("Filter KATEGORI", options=df['KATEGORI'].unique(), default=df['KATEGORI'].unique())
+        if jenis_pajak == "JASA KESENIAN DAN HIBURAN":
+            selected_KLASIFIKASI = st.multiselect("Filter KLASIFIKASI", options=df['KLASIFIKASI'].unique(), default=df['KLASIFIKASI'].unique())
         else:
-            selected_kategori = None
+            selected_KLASIFIKASI = None
 
     df_filtered = df[df['UPPPD'].isin(selected_upppd) & df['STATUS'].isin(selected_status)]
-    if jenis_pajak == "HIBURAN" and selected_kategori is not None:
-        df_filtered = df_filtered[df_filtered['KATEGORI'].isin(selected_kategori)]
+    if jenis_pajak == "JASA KESENIAN DAN HIBURAN" and selected_KLASIFIKASI is not None:
+        df_filtered = df_filtered[df_filtered['KLASIFIKASI'].isin(selected_KLASIFIKASI)]
 
     st.dataframe(df_filtered)
 
@@ -136,14 +141,14 @@ if uploaded_file:
     df_vis = df.copy()
     df_vis['TOTAL PEMBAYARAN'] = df[pembayaran_cols].fillna(0).sum(axis=1)
     top20 = df_vis.sort_values("TOTAL PEMBAYARAN", ascending=False).head(20)
-    fig1 = px.bar(top20, x="NAMA WP", y="TOTAL PEMBAYARAN", title="Top 20 WP berdasarkan Total Pembayaran")
+    fig1 = px.bar(top20, x="NAMA OP", y="TOTAL PEMBAYARAN", title="Top 20 WP berdasarkan Total Pembayaran")
     st.plotly_chart(fig1, use_container_width=True)
 
     # Visualisasi jumlah WP per klasifikasi kepatuhan
     df_kep = df.copy()
-    df_kep['KATEGORI KEPATUHAN'] = df_kep['KEPATUHAN (%)'].str.replace('%','').astype(float).apply(
+    df_kep['TINGKAT KEPATUHAN'] = df_kep['KEPATUHAN (%)'].str.replace('%','').astype(float).apply(
         lambda x: 'PATUH' if x == 100 else 'TIDAK PATUH')
-    fig2 = px.bar(df_kep['KATEGORI KEPATUHAN'].value_counts().reset_index(), 
+    fig2 = px.bar(df_kep['TINGKAT KEPATUHAN'].value_counts().reset_index(), 
                  x='index', y='count', labels={'index':'Klasifikasi', 'count':'Jumlah WP'},
-                 title="Jumlah WP per Klasifikasi Kepatuhan")
+                 title="Jumlah WP per Tingkat Kepatuhan")
     st.plotly_chart(fig2, use_container_width=True)
